@@ -26,11 +26,13 @@ function qr_factorization!(A::Array{Float64,2}, Q::Array{Float64,2}, R::Array{Fl
     #copying elements of A in R
     R .= A
 
-    k = min(m,n)
+    #k = min(m,n)
 
+    #Total Complexity: O(n(3m + 2mn)) = O(3nm + 2mn^2) = O(2n^2m) + O(nm)
     @views for j = 1 : min(m-1,n)
             
             #copying j-th column of R into v
+            #Complexity: O(m)
             for i = 1 : m
                 v[i] = i < j ? 0 : R[i,j]
             end
@@ -46,6 +48,7 @@ function qr_factorization!(A::Array{Float64,2}, Q::Array{Float64,2}, R::Array{Fl
 
             norm_v = norm(v)
 
+            #Complexity: O(m)
             for i = j : m
                 v[i] = v[i]/norm_v
             end
@@ -53,6 +56,7 @@ function qr_factorization!(A::Array{Float64,2}, Q::Array{Float64,2}, R::Array{Fl
             #calculate R
             # R = R - 2v*(v'*R)
 
+            #Complexity: O(mn)
             for i = j : n
                 sum = 0
                 for t = j : m
@@ -61,12 +65,14 @@ function qr_factorization!(A::Array{Float64,2}, Q::Array{Float64,2}, R::Array{Fl
                 u[i] = sum
             end
 
+            #Complexity: O(mn)
             for i = j : n
                 for t = j : m
                     R[t,i] = R[t,i] - 2*v[t]*u[i]
                 end
             end
 
+            #Complexity: O(m)
             for i = j : m
                 Q[i,j] = v[i]
             end
