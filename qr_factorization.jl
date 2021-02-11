@@ -20,21 +20,36 @@ function householder!(v)
     return s
 end
 
-function qr_factorization!(A::Array{Float64,2}, Q::Array{Float64,2}, R::Array{Float64,2}, v::Array{Float64,1}, u::Array{Float64,1} )
+function allocate_matrices(A)
+    (m,n) = size(A)
+
+    if m < n 
+        error("m must be greater or equal than n")
+    end
+    
+    QR = zeros(m+1,n)
+    v = zeros(m)
+    u = zeros(m)
+    return QR,v,u
+end
+
+function qr_factorization!(A::Array{Float64,2}, QR::Array{Float64,2}, v::Array{Float64,1}, u::Array{Float64,1} )
     (m,n) = size(A)
 
     #copying elements of A in R
-    R .= A
-
-    #k = min(m,n)
+    for j = 1 : n
+        for i = 1 : m
+            QR[i,j] = A[i,j]
+        end
+    end
 
     #Total Complexity: O(n(3m + 2mn)) = O(3nm + 2mn^2) = O(2n^2m) + O(nm)
     @views for j = 1 : min(m-1,n)
-            
+
             #copying j-th column of R into v
             #Complexity: O(m)
             for i = 1 : m
-                v[i] = i < j ? 0 : R[i,j]
+                v[i] = i < j ? 0 : QR[i,j]
             end
 
             #calculation householder
@@ -60,7 +75,7 @@ function qr_factorization!(A::Array{Float64,2}, Q::Array{Float64,2}, R::Array{Fl
             for i = j : n
                 sum = 0
                 for t = j : m
-                    sum += v[t]*R[t,i]
+                    sum += v[t]*QR[t,i]
                 end
                 u[i] = sum
             end
@@ -68,15 +83,13 @@ function qr_factorization!(A::Array{Float64,2}, Q::Array{Float64,2}, R::Array{Fl
             #Complexity: O(mn)
             for i = j : n
                 for t = j : m
-                    R[t,i] = R[t,i] - 2*v[t]*u[i]
+                    QR[t,i] = QR[t,i] - 2*v[t]*u[i]
                 end
             end
 
             #Complexity: O(m)
-            for i = j : m
-                Q[i,j] = v[i]
+            for i = j+1 : m+1
+                QR[i,j] = v[i-1]
             end
     end
-
-    return Q,R
 end
