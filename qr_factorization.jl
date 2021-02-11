@@ -31,7 +31,7 @@ function qr_factorization!(A::Array{Float64,2}, Q::Array{Float64,2}, R::Array{Fl
     @views for j = 1 : min(m-1,n)
             
             #copying j-th column of R into v
-            for i = 1 : k
+            for i = 1 : m
                 v[i] = i < j ? 0 : R[i,j]
             end
 
@@ -46,28 +46,28 @@ function qr_factorization!(A::Array{Float64,2}, Q::Array{Float64,2}, R::Array{Fl
 
             norm_v = norm(v)
 
-            for i = j : length(v)
+            for i = j : m
                 v[i] = v[i]/norm_v
             end
 
             #calculate R
             # R = R - 2v*(v'*R)
 
-            for i = j : k
+            for i = j : n
                 sum = 0
-                for t = j : k
+                for t = j : m
                     sum += v[t]*R[t,i]
                 end
                 u[i] = sum
             end
 
-            for i = j : k
-                for t = j : k
+            for i = j : n
+                for t = j : m
                     R[t,i] = R[t,i] - 2*v[t]*u[i]
                 end
             end
 
-            for i = j : k
+            for i = j : m
                 Q[i,j] = v[i]
             end
     end
