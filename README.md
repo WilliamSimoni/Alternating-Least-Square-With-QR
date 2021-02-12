@@ -5,3 +5,4 @@ TODO:
 - [ ] search convergence rate of the algorithm
 - [ ] search if we there exist a limit point
 - [ ] global convergence (probably impossible)
+- [ ] test things
