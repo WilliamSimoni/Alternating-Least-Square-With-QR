@@ -2,24 +2,6 @@
 
 using LinearAlgebra
 
-function householder!(v)
-    s = norm(v)
-    #computing v = x - y where y = [||x||; 0 ...]
-
-    if s >= 0
-        s = -s
-    end
-
-    v[1] = v[1] - s
-
-    norm_v = norm(v)
-    for i = 1 : length(v)
-        v[i] = v[i]/norm_v
-    end
-    
-    return s
-end
-
 function allocate_matrices(A)
     (m,n) = size(A)
 
@@ -44,7 +26,7 @@ function qr_factorization!(A::Array{Float64,2}, QR::Array{Float64,2}, v::Array{F
     end
 
     #Total Complexity: O(n(3m + 2mn)) = O(3nm + 2mn^2) = O(2n^2m) + O(nm)
-    @views for j = 1 : min(m-1,n)
+    @inbounds @views for j = 1 : min(m-1,n)
 
             #copying j-th column of R into v
             #Complexity: O(m)
@@ -64,32 +46,58 @@ function qr_factorization!(A::Array{Float64,2}, QR::Array{Float64,2}, v::Array{F
             norm_v = norm(v)
 
             #Complexity: O(m)
-            for i = j : m
-                v[i] = v[i]/norm_v
-            end
+            @. v = v/norm_v
 
             #calculate R
             # R = R - 2v*(v'*R)
 
-            #Complexity: O(mn)
-            for i = j : n
-                sum = 0
-                for t = j : m
-                    sum += v[t]*QR[t,i]
-                end
-                u[i] = sum
-            end
+            t = j+1
+            
+            QR[j,j] = s
+            @. QR[t:m, j] = 0
 
             #Complexity: O(mn)
-            for i = j : n
-                for t = j : m
-                    QR[t,i] = QR[t,i] - 2*v[t]*u[i]
-                end
-            end
+            u[t:n]' .= v[j:m]' * QR[j:m, t:n]
+
+            #Complexity: O(mn)
+            @. QR[j:m, t:n] = QR[j:m, t:n] - (2*v[j:m])*u[t:n]'
 
             #Complexity: O(m)
-            for i = j+1 : m+1
-                QR[i,j] = v[i-1]
-            end
+            @. QR[j+1:m+1, j] = v[j : m]
+    end
+
+    #if m== n then we have still to compute the last reflector
+    if m == n
+        #copying j-th column of R into v
+        #Complexity: O(m)
+        for i = 1 : m
+            @inbounds v[i] = i < n ? 0 : QR[i,n]
+        end
+
+        #calculation householder
+        s = norm(v)
+            
+        if v[n] >= 0
+            s = -s
+        end
+        
+        v[n] = v[n] - s
+
+        #Complexity: O(m)
+        v[n] = v[n]/norm(v)
+
+        QR[m+1,n] = v[n]
+    end
+
+end
+
+function Q_t_times_A(QR,A,W)
+    (m,n) = size(A)
+    @views V = tril(QR, -1)[2:end,:]
+    W .= A
+
+    for j = 1:n
+        println(j)
+        W .= W .- 2 .* V[:,j] .* (V[:,j]'*W)
     end
 end
