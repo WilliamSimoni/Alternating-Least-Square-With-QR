@@ -15,7 +15,7 @@ function allocate_matrices(A)
     return QR,v,u
 end
 
-function qr_factorization!(A::Array{Float64,2}, QR::Array{Float64,2}, v::Array{Float64,1}, u::Array{Float64,1} )
+function qr_factorization!(A, QR::Array{Float64,2}, v::Array{Float64,1}, u::Array{Float64,1} )
     (m,n) = size(A)
 
     #copying elements of A in R
@@ -92,12 +92,13 @@ function qr_factorization!(A::Array{Float64,2}, QR::Array{Float64,2}, v::Array{F
 end
 
 function Q_t_times_A(QR,A,W)
-    (m,n) = size(A)
     @views V = tril(QR, -1)[2:end,:]
-    W .= A
+    (m,n) = size(V)
+    W .= 0
+    W .= A .- 2 .* V[:,1] .* (V[:,1]'*A)
 
-    for j = 1:n
-        println(j)
+    #Complexity: O(mn^2)
+    for j = 2:n
         W .= W .- 2 .* V[:,j] .* (V[:,j]'*W)
     end
 end
