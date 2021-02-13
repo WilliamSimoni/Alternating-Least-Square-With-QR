@@ -28,42 +28,42 @@ function qr_factorization!(A::Array{Float64,2}, QR::Array{Float64,2}, v::Array{F
     #Total Complexity: O(n(3m + 2mn)) = O(3nm + 2mn^2) = O(2n^2m) + O(nm)
     @inbounds @views for j = 1 : min(m-1,n)
 
-            #copying j-th column of R into v
-            #Complexity: O(m)
-            for i = 1 : m
-                v[i] = i < j ? 0 : QR[i,j]
-            end
+        #copying j-th column of R into v
+        #Complexity: O(m)
+        for i = 1 : m
+            v[i] = i < j ? 0 : QR[i,j]
+        end
 
-            #calculation householder
-            s = norm(v)
+        #calculation householder
+        s = norm(v)
             
-            if v[j] >= 0
-                s = -s
-            end
+        if v[j] >= 0
+            s = -s
+        end
         
-            v[j] = v[j] - s
+        v[j] = v[j] - s
 
-            norm_v = norm(v)
+        norm_v = norm(v)
 
-            #Complexity: O(m)
-            @. v = v/norm_v
+        #Complexity: O(m)
+        @. v = v/norm_v
 
-            #calculate R
-            # R = R - 2v*(v'*R)
+        #calculate R
+        # R = R - 2v*(v'*R)
 
-            t = j+1
+        t = j+1
             
-            QR[j,j] = s
-            @. QR[t:m, j] = 0
+        QR[j,j] = s
+        @. QR[t:m, j] = 0
 
-            #Complexity: O(mn)
-            u[t:n]' .= v[j:m]' * QR[j:m, t:n]
+        #Complexity: O(mn)
+        u[t:n]' .= v[j:m]' * QR[j:m, t:n]
 
-            #Complexity: O(mn)
-            @. QR[j:m, t:n] = QR[j:m, t:n] - (2*v[j:m])*u[t:n]'
+        #Complexity: O(mn)
+        @. QR[j:m, t:n] = QR[j:m, t:n] - (2*v[j:m])*u[t:n]'
 
-            #Complexity: O(m)
-            @. QR[j+1:m+1, j] = v[j : m]
+        #Complexity: O(m)
+        @. QR[j+1:m+1, j] = v[j : m]
     end
 
     #if m== n then we have still to compute the last reflector
