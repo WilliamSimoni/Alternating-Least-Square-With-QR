@@ -66,39 +66,27 @@ function qr_factorization!(A, QR::Array{Float64,2}, v::Array{Float64,1}, u::Arra
         @. QR[j+1:m+1, j] = v[j : m]
     end
 
-    #if m== n then we have still to compute the last reflector
+    #if m== n then QR[m+1,n]=0
     if m == n
-        #copying j-th column of R into v
-        #Complexity: O(m)
-        for i = 1 : m
-            @inbounds v[i] = i < n ? 0 : QR[i,n]
-        end
-
-        #calculation householder
-        s = norm(v)
-            
-        if v[n] >= 0
-            s = -s
-        end
-        
-        v[n] = v[n] - s
-
-        #Complexity: O(m)
-        v[n] = v[n]/norm(v)
-
-        QR[m+1,n] = v[n]
+        QR[m+1,n] = 0.0
     end
 
 end
 
-function Q_t_times_A(QR,A,W)
+function Q_t_times_A!(QR,A,W)
     @views V = tril(QR, -1)[2:end,:]
+    println(size(QR), size(V), size(A), size(W))
     (m,n) = size(V)
     W .= 0
     W .= A .- 2 .* V[:,1] .* (V[:,1]'*A)
 
     #Complexity: O(mn^2)
-    for j = 2:n
+    num_iteration = n
+    if V[m,n] == 0.0
+        num_iteration -= 1
+    end
+
+    for j = 2:num_iteration
         W .= W .- 2 .* V[:,j] .* (V[:,j]'*W)
     end
 end
