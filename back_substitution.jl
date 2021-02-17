@@ -1,6 +1,6 @@
 # back-substitution jl
 
-function back_substitution_v(R, x, b)
+function back_substitution_v!(R, x, b)
     (n, m) = size(R)
 
     x .= 0
@@ -16,9 +16,16 @@ function back_substitution_v(R, x, b)
     
 end
 
-function back_substitution(R,V,W)
+function back_substitution!(R,V,W)
     (m,n) = size(V)
-    @views for i = 1 : n
-        back_substitution_v(R, V[:,i], W[:,i])
+    (k, t) = size(R)
+    #back_substitution_v!(R, V[:,i], W[:,i])
+    @views @inbounds for i = 1 : n
+        V[:,i] .= 0
+        # O(m^2)
+        for j = k:-1:1 
+            V[j,i] = W[j,i]/R[j,j];
+            @. W[1:j-1,i] = W[1:j-1,i] - R[1:j-1,j]*V[j,i];
+        end    
     end
 end

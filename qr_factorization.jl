@@ -75,7 +75,6 @@ end
 
 function Q_t_times_A!(QR,A,W)
     @views V = tril(QR, -1)[2:end,:]
-    println(size(QR), size(V), size(A), size(W))
     (m,n) = size(V)
     W .= 0
     W .= A .- 2 .* V[:,1] .* (V[:,1]'*A)
