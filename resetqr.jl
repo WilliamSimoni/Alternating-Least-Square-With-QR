@@ -1,7 +1,6 @@
 using LinearAlgebra
-using Arpack
 
-function resetqr(A,k)
+function resetqr_julia(A,k)
     @time begin
         
     min_error = 1e-16
@@ -9,13 +8,13 @@ function resetqr(A,k)
     U = 0
     V = 0
 
-    U,V = get_U_and_V(A, k, min_error)
+    U,V = get_U_and_V_julia(A, k, min_error)
 
     end
     return U,V
 end
 
-function get_U_and_V(A, k, min_error, max_steps = 20)
+function get_U_and_V_julia(A, k, min_error, max_steps = 20)
     (m,n) = size(A)
     U = rand(m,k)
     V = rand(k,n)
