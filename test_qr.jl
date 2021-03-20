@@ -3,18 +3,18 @@ using Dates
 using Plots
 
 include("qr_factorization.jl")
-include("truncated.svd.jl")
+include("truncated_svd.jl")
 
 function test_qr_R(num_tests)
     errors = 0
-    min_error = 1e-13
+    min_error = 1e-10
 
     for i = 1:num_tests
         #generate random matrix
         rows = rand(10:100)
         columns = rand(10:rows)
         rank = rand(10:columns)
-        A = rand(rows,columns)
+        A = approx_matrix_svd(rand(rows,columns),rank)
 
         #calculate QR factorization
         QR, v, u = allocate_matrices(A)
@@ -32,14 +32,14 @@ end
 
 function test_qr_multiplication(num_tests)
     errors = 0
-    min_error = 1e-13
+    min_error = 1e-10
 
     for i = 1:num_tests
         #generate random matrix
         rows = rand(10:100)
         columns = rand(10:rows)
         rank = rand(10:columns)
-        A = rand(rows,columns)
+        A = approx_matrix_svd(rand(rows,columns),rank)
 
         #calculate QR factorization
         QR, v, u = allocate_matrices(A)
