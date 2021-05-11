@@ -6,7 +6,7 @@ function back_substitution_v!(R, x, b)
     x .= 0
 
     # O(m^2)
-    for i = m:-1:1 
+    @inbounds for i = m:-1:1 
         b_i = b[i]
         for k = i + 1:m
             b_i = b_i - R[i,k] * x[k]

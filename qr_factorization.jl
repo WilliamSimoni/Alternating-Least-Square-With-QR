@@ -58,7 +58,7 @@ function qr_factorization!(A, QR::Array{Float64,2}, v::Array{Float64,1}, u::Arra
 
         #Complexity: O(mn)
         u[t:n]' .= v[j:m]' * QR[j:m, t:n]
-
+        
         #Complexity: O(mn)
         @. QR[j:m, t:n] = QR[j:m, t:n] - (2*v[j:m])*u[t:n]'
 
@@ -87,5 +87,17 @@ function Q_t_times_A!(QR,A,W)
 
     for j = 2:num_iteration
         W .= W .- 2 .* V[:,j] .* (V[:,j]'*W)
+    end
+end
+
+function get_Q!(QR, Q)
+    @views V = tril(QR, -1)[2:end,:]
+    (m,n) = size(V)
+
+    #initialize Q
+    Q .= (I - 2 .* V[:,n] .* V[:,n]')[:,1:n]
+    
+    for j in n-1:-1:1
+        Q[j:end,j:end] .= (I - 2 .* V[:,j] .* V[:,j]')[j:end,j:end] * Q[j:end,j:end] 
     end
 end
