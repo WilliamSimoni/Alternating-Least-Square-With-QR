@@ -5,7 +5,7 @@ using Printf
 include("back_substitution.jl")
 include("qr_factorization.jl")
 
-function resetqr(A, k; initV = rand(k, size(A)[2]), min_error=1e-8, max_iterations=100, print_error=true, save_errors=false)
+function cresetqr(A, k; initV = rand(k, size(A)[2]), min_error=1e-8, max_iterations=100, print_error=true, save_errors=false)
     (m, n) = size(A)
     U = zeros(m, k)
     V = zeros(k,n)
@@ -15,20 +15,24 @@ function resetqr(A, k; initV = rand(k, size(A)[2]), min_error=1e-8, max_iteratio
     QR_V, v_V, u_V = allocate_matrices(V')
     QR_U, v_U, u_U = allocate_matrices(U)
     W_V = zeros(n, m)
-    W_U = zeros(m, n)
+    Q_U = zeros(m, k)
 
     f = norm(A - U * V, 2)
-
-    if print_error
-        println("step\t ||A - UV||_f\t ||f_old-f||")
-    end
 
     if save_errors
         errors = zeros(max_iterations)
     end
 
+    if print_error
+        println("step\t ||A - UV||_f\t ||f_old-f||")
+    end
+
     num_steps = 1
     @views @inbounds for num_step = 1:max_iterations
+        # gradient = [U*V*V' - A*V', U'*U*V - U'*A]
+
+        # U_old = U
+        # V_old = V
 
         f_old = f
 
@@ -39,14 +43,18 @@ function resetqr(A, k; initV = rand(k, size(A)[2]), min_error=1e-8, max_iteratio
 
         qr_factorization!(U, QR_U, v_U, u_U)
         R = triu(QR_U)[1:k,:]
-        Q_t_times_A!(QR_U, A, W_U)
-        back_substitution!(R, V, W_U[1:k,1:n])
+        get_Q!(QR_U, Q_U)
+        back_substitution!(R, V, Q_U' * A)
+
+        U .= Q_U[:,1:k]
+        V .= R * V
 
         f = norm(A - U * V, 2)
 
         delta = norm(f_old - f, 2)
 
         if print_error
+            # println(num_step, ")\t", f," \t", delta)
             @printf("%d)\t%.13f\t%.13f\n",num_step,f,delta)
         end
 

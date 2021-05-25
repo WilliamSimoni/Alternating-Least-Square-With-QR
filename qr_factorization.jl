@@ -95,9 +95,9 @@ function get_Q!(QR, Q)
     (m,n) = size(V)
 
     #initialize Q
-    Q .= (I - 2 .* V[:,n] .* V[:,n]')[:,1:n]
+    @views @inbounds Q .= (I - 2 .* V[:,n] .* V[:,n]')[:,1:n]
     
-    for j in n-1:-1:1
+    @views @inbounds for j in n-1:-1:1
         Q[j:end,j:end] .= (I - 2 .* V[:,j] .* V[:,j]')[j:end,j:end] * Q[j:end,j:end] 
     end
 end

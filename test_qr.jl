@@ -5,6 +5,32 @@ using Plots
 include("qr_factorization.jl")
 include("truncated_svd.jl")
 
+function test_qr_A(num_tests)
+    errors = 0
+    min_error = 1e-13
+
+    for i = 1:num_tests
+        #generate random matrix
+        rows = rand(10:100)
+        columns = rand(10:rows)
+        r = rand(10:columns)
+        A = approx_matrix_svd(rand(rows,columns),r)
+
+        #calculate QR factorization
+        QR, v, u = allocate_matrices(A)
+        Q = rand(rows, columns)
+        qr_factorization!(A,QR,v,u)
+        get_Q!(QR,Q)
+        R = triu(QR)[1:columns,:]
+
+        if (norm(Q*R - A) > min_error)
+            errors += 1
+        end   
+
+    end
+    return errors
+end
+
 function test_qr_R(num_tests)
     errors = 0
     min_error = 1e-10
@@ -13,8 +39,8 @@ function test_qr_R(num_tests)
         #generate random matrix
         rows = rand(10:100)
         columns = rand(10:rows)
-        rank = rand(10:columns)
-        A = approx_matrix_svd(rand(rows,columns),rank)
+        r = rand(10:columns)
+        A = approx_matrix_svd(rand(rows,columns),r)
 
         #calculate QR factorization
         QR, v, u = allocate_matrices(A)
@@ -38,8 +64,8 @@ function test_qr_multiplication(num_tests)
         #generate random matrix
         rows = rand(10:100)
         columns = rand(10:rows)
-        rank = rand(10:columns)
-        A = approx_matrix_svd(rand(rows,columns),rank)
+        r = rand(10:columns)
+        A = approx_matrix_svd(rand(rows,columns),r)
 
         #calculate QR factorization
         QR, v, u = allocate_matrices(A)
