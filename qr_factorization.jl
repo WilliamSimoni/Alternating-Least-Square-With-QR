@@ -2,6 +2,20 @@
 
 using LinearAlgebra
 
+
+"""
+Allocate matrices and vectors for the QR factorization of A
+
+# Arguments
+- `A::Array{Float64,2}`: matrix of size m x n such that m < n
+
+# Return
+
+- `QR::Array{Float64,2}`: matrix of size m+1 x n
+- `v::Array{Float64,1}`: vector of size m
+- `u::Array{Float64,1}`: vector of size m
+
+"""
 function allocate_matrices(A)
     (m,n) = size(A)
 
@@ -15,6 +29,18 @@ function allocate_matrices(A)
     return QR,v,u
 end
 
+
+"""
+Performs QR factorization of A
+
+# Arguments
+- `A::Array{Float64,2}`: matrix of size m x n such that m < n.
+- `QR::Array{Float64,2}`: matrix of size m+1 x n. The result of the factorization is stored in QR such that:
+    - the upper triangular part contains R. Therefore, R = triu(QR)[1:n,:]
+    - the sub-diagonal part contains the reflectors v. Hence, V = tril(QR,-1)[2:n+1,:]
+- `v::Array{Float64,1}`: vector of size m
+- `u::Array{Float64,1}`: vector of size m
+"""
 function qr_factorization!(A, QR::Array{Float64,2}, v::Array{Float64,1}, u::Array{Float64,1} )
     (m,n) = size(A)
 
@@ -34,7 +60,7 @@ function qr_factorization!(A, QR::Array{Float64,2}, v::Array{Float64,1}, u::Arra
             v[i] = i < j ? 0 : QR[i,j]
         end
 
-        #calculation householder
+        #calculating householders
         s = norm(v)
             
         if v[j] >= 0
@@ -48,7 +74,7 @@ function qr_factorization!(A, QR::Array{Float64,2}, v::Array{Float64,1}, u::Arra
         #Complexity: O(m)
         @. v = v/norm_v
 
-        #calculate R
+        #calculating R
         # R = R - 2v*(v'*R)
 
         t = j+1
@@ -62,7 +88,7 @@ function qr_factorization!(A, QR::Array{Float64,2}, v::Array{Float64,1}, u::Arra
         #Complexity: O(mn)
         @. QR[j:m, t:n] = QR[j:m, t:n] - (2*v[j:m])*u[t:n]'
 
-        #Complexity: O(m)
+        #copying householder reflector into QR matrix
         @. QR[j+1:m+1, j] = v[j : m]
     end
 
@@ -73,9 +99,21 @@ function qr_factorization!(A, QR::Array{Float64,2}, v::Array{Float64,1}, u::Arra
 
 end
 
+"""
+Performs Q^t * A and stores the result in W (Q^t is Q transposed)
+
+# Arguments
+- `QR::Array{Float64,2}`: matrix of size m+1 x n. The result of the factorization is stored in QR such that:
+    - the upper triangular part contains R. Therefore, R = triu(QR)[1:n,:]
+    - the sub-diagonal part contains the reflectors v. Hence, V = tril(QR,-1)[2:n+1,:]
+- `A::Array{Float64,2}`: matrix of size m x n.
+- `W::Array{Float64,2}`:matrix of size m x n in which the result is stored.
+"""
 function Q_t_times_A!(QR,A,W)
+    #Taking householder vectors
     @views V = tril(QR, -1)[2:end,:]
     (m,n) = size(V)
+
     W .= 0
     W .= A .- 2 .* V[:,1] .* (V[:,1]'*A)
 
@@ -90,6 +128,15 @@ function Q_t_times_A!(QR,A,W)
     end
 end
 
+"""
+Given the QR factorization returns the Q factor
+
+# Arguments
+- `QR::Array{Float64,2}`: matrix of size m+1 x n. The result of the factorization is stored in QR such that:
+    - the upper triangular part contains R. Therefore, R = triu(QR)[1:n,:]
+    - the sub-diagonal part contains the reflectors v. Hence, V = tril(QR,-1)[2:n+1,:]
+- `Q::Array{Float64,2}`:matrix of size m x n in which the result is stored.
+"""
 function get_Q!(QR, Q)
     @views V = tril(QR, -1)[2:end,:]
     (m,n) = size(V)

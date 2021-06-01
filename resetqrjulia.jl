@@ -1,5 +1,8 @@
 using LinearAlgebra
 
+"""
+RESETQR using JULIA functions. Used to test the algorithm at the beginning of the project.
+"""
 function resetqr_julia(A,k)
     @time begin
         
@@ -26,16 +29,11 @@ function get_U_and_V_julia(A, k, min_error, max_steps = 20)
     while(num_step < max_steps)
         #gradient = [U*V*V' - A*V', U'*U*V - U'*A]
 
-        #U_old = U
-        #V_old = V
-
         f_old = norm(A - U*V,2)
         Q,R = qr(V')
-        #println(rank(V))
         U = (inv(R)*Q'*A')'
         error = norm(A - U*V,2)
         Q,R = qr(U)
-        #println(rank(U))
         V = inv(R)*Q'*A
         f = norm(A - U*V,2)
         
